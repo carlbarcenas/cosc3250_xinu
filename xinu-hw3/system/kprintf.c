@@ -28,17 +28,7 @@ syscall kgetc(void)
     // TODO: First, check the unget buffer for a character.
     //       Otherwise, check UART flags register, and
     //       once the receiver is not empty, get character c.
-    	while(1)
-	{
-		if(ungetArray[0] != \0)
-		{
-			return ungetArray[0];
-		}
-		else
-		{
-			return regptr -> fr;
-		}
-	}
+    // USE kcheckc()?
 
     return SYSERR;
 }
@@ -51,9 +41,18 @@ syscall kcheckc(void)
 {
     volatile struct pl011_uart_csreg *regptr;
     regptr = (struct pl011_uart_csreg *)0x3F201000;
+	int i = 0; //DELETEME?
 
     // TODO: Check the unget buffer and the UART for characters.
-
+	// CHECK UNGET BUFFER
+	for(i = 0, i < UNGETMAX, i++) { // CHECK UNGET BUFFER
+		if(ungetArray[i] != '\0')
+		{
+			return 1;
+		}
+	}
+	// TODO: CHECK UART FOR CHARACTERS, HOW?
+	
     return SYSERR;
 }
 
