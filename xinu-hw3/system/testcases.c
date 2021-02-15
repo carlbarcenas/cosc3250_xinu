@@ -33,6 +33,9 @@ void testcases(void)
     {
 
         // TODO: Test your operating system!
+	case 'a':
+		printf("I hope this works");
+		break;
 
     default:
         kprintf("Hello Xinu World!\r\n");
