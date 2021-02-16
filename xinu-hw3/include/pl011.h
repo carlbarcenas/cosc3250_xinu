@@ -11,8 +11,6 @@
  * Control and status registers for the PL011 UART.  This structure is
  * mapped directly to the base address for the CSR.
  */
-//NOTE: These integers are 4 byte data.
-//EXAMPLE: regptr > PL011_FR_BUSY
 struct pl011_uart_csreg
 {
     volatile unsigned int dr;   /**< Data Register                        *///0x00
