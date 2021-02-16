@@ -1,5 +1,11 @@
 /**
  * @file kprintf.c
+ * COSC3250 - Project 3
+ * Provides I/O related bit communication functions for a Synchronous Serial Driver for embedded OSystems.
+ * @authors Carl Barcenas, Anthony Nicholas
+ * In collaboration with: Mike Awadallah, Brendan Wilke
+ * Instructor TODO
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu
  */
 
 /* Embedded Xinu, Copyright (C) 2009, 2013.  All rights reserved. */
@@ -28,7 +34,10 @@ syscall kgetc(void)
     // TODO: First, check the unget buffer for a character.
     //       Otherwise, check UART flags register, and
     //       once the receiver is not empty, get character c.
-
+	if(ungetArray[0] != '\0')
+	{
+		
+	}
     return SYSERR;
 }
 
@@ -79,6 +88,13 @@ syscall kputc(uchar c)
 
     // TODO: Check UART flags register.
     //       Once the Transmitter FIFO is not full, send character c.
+	while(((regptr->fr)&PL011_FR_TXFE)!=PL011_FR_TXFE)
+	{
+		// Do nothing
+	}	
+	
+	regptr->dr = c;
+	return c;
 
     return SYSERR;
 }
