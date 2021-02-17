@@ -82,13 +82,13 @@ syscall kcheckc(void)
 	{
 		return 1;
 	}
-	else if(regptr->fr & PL011_FR_RXFE) 
+	if(regptr->fr & PL011_FR_RXFE)
 	{
-		return 1;
+		return 0;
 	}
 	else
 	{
-		return 0;
+		return 1;
 	}
     return SYSERR;
 }

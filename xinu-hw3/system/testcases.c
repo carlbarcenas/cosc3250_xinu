@@ -7,8 +7,12 @@
  * Modified by: CARL BARCENAS
  *
  * and ANTHONY NICHOLAS
- *
+ * 
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  */
+
 /* Embedded XINU, Copyright (C) 2007.  All rights reserved. */
 
 #include <xinu.h>
