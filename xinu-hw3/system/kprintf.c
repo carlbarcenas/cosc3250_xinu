@@ -4,8 +4,8 @@
  * Provides I/O related bit communication functions for a Synchronous Serial Driver for embedded OSystems.
  * @authors Carl Barcenas, Anthony Nicholas
  * In collaboration with: Mike Awadallah, Brendan Wilke
- * Instructor TODO
- * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu
+ * Instructor Sabirat Rubiya
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  */
 
 /* Embedded Xinu, Copyright (C) 2009, 2013.  All rights reserved. */
@@ -36,20 +36,34 @@ syscall kgetc(void)
     // TODO: First, check the unget buffer for a character.
     //       Otherwise, check UART flags register, and
     //       once the receiver is not empty, get character c.
-	while(kcheckc() == 1)
+	if(ungetArray[0] != '\0')
 	{
-		if(ungetArray[0] != '\0')
+		c = ungetArray[0];
+		for(i = 1; i < UNGETMAX; i++)
 		{
-			c = ungetArray[0];
-			
+			// Stops loop if ungetArray ends
+			if(ungetArray[i] == '\0')
+			{
+				ungetArray[i-1] = '\0';
+				break;
+			}
+			// Shift array left
+			ungetArray[i-1] = ungetArray[i];
 		}
-		else
+		return (int)c;		
+	}
+	else
+	{
+		while(regptr->fr & PL011_FR_RXFE)
 		{
-			c = regptr->dr;
+			// Do nothing
 		}
+		
+		c = regptr->dr;
+
+		return (int)c;
 	}
 	
-	return (int)c;
 	
     return SYSERR;
 }
