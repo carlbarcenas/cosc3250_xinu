@@ -27,17 +27,30 @@ static unsigned char ungetArray[UNGETMAX];
 syscall kgetc(void)
 {
     volatile struct pl011_uart_csreg *regptr;
-
     /* Pointer to the UART control and status registers.  */
     regptr = (struct pl011_uart_csreg *)0x3F201000;
+
+	unsigned char c;
+	int i = 0;
 
     // TODO: First, check the unget buffer for a character.
     //       Otherwise, check UART flags register, and
     //       once the receiver is not empty, get character c.
-	if(ungetArray[0] != '\0')
+	while(kcheckc() == 1)
 	{
-		
+		if(ungetArray[0] != '\0')
+		{
+			c = ungetArray[0];
+			
+		}
+		else
+		{
+			c = regptr->dr;
+		}
 	}
+	
+	return (int)c;
+	
     return SYSERR;
 }
 
@@ -51,7 +64,15 @@ syscall kcheckc(void)
     regptr = (struct pl011_uart_csreg *)0x3F201000;
 
     // TODO: Check the unget buffer and the UART for characters.
-
+	if(ungetArray[0] != '\0' || regptr->dr != 0) //Check if unget buffer is empty
+	{
+	//TODO: FIX CHECKING UART? DOES IT WORK?
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
     return SYSERR;
 }
 
@@ -63,6 +84,15 @@ syscall kcheckc(void)
 syscall kungetc(unsigned char c)
 {
     // TODO: Check for room in unget buffer, put the character in or discard.
+	int i = 0;
+	for(i = 0; i < UNGETMAX; i++)
+	{
+		if(ungetArray[i] == '\0')
+		{
+			ungetArray[i] = c;
+			return c;
+		}
+	}
 
     return SYSERR;
 }
@@ -85,16 +115,17 @@ syscall kputc(uchar c)
 
     /* Pointer to the UART control and status registers.  */
     regptr = (struct pl011_uart_csreg *)0x3F201000;
-
     // TODO: Check UART flags register.
-    //       Once the Transmitter FIFO is not full, send character c.
-	while(((regptr->fr)&PL011_FR_TXFE)!=PL011_FR_TXFE)
+    // Once the Transmitter FIFO is not full, send character c.
+
+	while((regptr->fr & PL011_FR_TXFE)!=PL011_FR_TXFE) // Loop through flag register until it is empty
 	{
 		// Do nothing
 	}	
 	
-	regptr->dr = c;
-	return c;
+	// Sends character c
+	regptr->dr = (int)c;
+	return (int)c;
 
     return SYSERR;
 }
