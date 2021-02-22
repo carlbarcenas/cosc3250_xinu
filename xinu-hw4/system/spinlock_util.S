@@ -26,18 +26,18 @@ _lock_acquire:
 	//	 	If it is, then retry
 	//	 Second, use strex to try to set the lock to SPINLOCK_LOCKED.
 	//	 	If strex fails, try from the top.
-	
-	L1: // Case of locked spinlock
-	ldrex 	r1, [r0] // Loads val in r0 into r1, thus r1 is the lockstatus
-	cmp 	r1, #SPINLOCK_LOCKED
-	beq 	L1
-	bne 	L2
 
-	L2: // Else case
-	mov	r1, #SPINLOCK_LOCKED //r1 now contains spinlock_locked val
-	strex	r2, r1, [r0]	//val in address r0 now contains SPINLOCK_LOCKED
-	cmp	r2, #0
-	bne _lock_acquire
+	ldrex	r1, [r0]			// Load val in r0 address to r1
+	cmp	r1, #SPINLOCK_LOCKED		// Check if r1 is locked
+	beq	_lock_acquire			// Retry if it is locked
+	bne	L2
+
+	L2:
+	mov 	r1, #SPINLOCK_LOCKED		// Set r1 val to SPINLOCK_LOCKED
+	strex	r2, r1, [r0]			// r1 stored into r0
+	cmp	r2, #0				// Check for success, if !=0 then restart
+	bne	_lock_acquire
+
 
 
 	dmb			/* Data Memory Barrier	*/
