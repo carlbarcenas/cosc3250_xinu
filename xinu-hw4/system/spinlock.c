@@ -66,6 +66,11 @@ syscall lock_acquire(spinlock_t lock)
     // TODO: First, check if lock is a valid lock.
     //       Next, call _lock_acquire assembly subroutine
     //       and properly set "core" field of lockent struct        
+	if(isbadlock(lock))	{
+		return SYSERR;
+	}
+
+	_lock_acquire(&(locktab[lock].lock));
 
     return OK;
 }
@@ -80,6 +85,10 @@ syscall lock_release(spinlock_t lock)
     // TODO: Check if lock is a valid lock.
     //       Call _lock_release assembly subroutine and
     //       reset "core" field of lockent struct
+
+	if(isbadlock(lock))	{
+		return SYSERR;
+	}
 
     return OK;
 }

@@ -23,9 +23,22 @@ _lock_acquire:
 	// TODO: Implement a spinlock acquire method by:
 	//       First, use ldrex to obtain the value at the lock.
 	//       Then, check if it is locked (SPINLOCK_LOCKED).
-	//	 	If it is, then retry.
+	//	 	If it is, then retry
 	//	 Second, use strex to try to set the lock to SPINLOCK_LOCKED.
 	//	 	If strex fails, try from the top.
+	
+	L1: // Case of locked spinlock
+	ldrex 	r1, [r0] // Loads val in r0 into r1, thus r1 is the lockstatus
+	cmp 	r1, #SPINLOCK_LOCKED
+	beq 	L1
+	bne 	L2
+
+	L2: // Else case
+	mov	r1, #SPINLOCK_LOCKED //r1 now contains spinlock_locked val
+	strex	r2, r1, [r0]	//val in address r0 now contains SPINLOCK_LOCKED
+	cmp	r2, #0
+	bne _lock_acquire
+
 
 	dmb			/* Data Memory Barrier	*/
 	bx	lr
