@@ -3,6 +3,12 @@
  * @provides testcases
  *
  * Embedded XINU, Copyright (C) 2007, 2019.  All rights reserved.
+ *
+ * COSC 3250 - Project 4
+ * Spinlock allows for the usage of multiple cores with mutual exclusion
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  */
 
 #include <xinu.h>
@@ -88,7 +94,14 @@ void testcases(void)
         // This tests that the core field is being set.
         // Expected output is that lock field is locked and core field is 1.
         
-        // TODO: Write this testcase.
+	// TODO: Write this testcase.
+	testlock = lock_create();
+	unparkcore(1, (void*)core_acquire, (void*)testlock);
+	print_lockent(testlock);
+	lock_release(testlock);
+	lock_free(testlock);
+	
+
         break;
 
     case '5':
@@ -102,6 +115,17 @@ void testcases(void)
         // Expected output is that the core field should be 0.
 
         // TODO: Write this testcase.
+        testlock = lock_create();
+	lock_acquire(testlock);
+
+	unparkcore(1, (void*)lock_acquire, (void*)testlock);
+	unparkcore(2, (void*)lock_acquire, (void*)testlock);
+	unparkcore(3, (void*)lock_acquire, (void*)testlock);
+
+	print_lockent(testlock);
+
+	//lock_release(testlock);	
+
         lock_free(testlock);
         break;
 

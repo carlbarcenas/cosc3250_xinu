@@ -2,6 +2,12 @@
  * @file spinlock.c
  * @provides lock_create, lock_free, lock_acquire, lock_release.
  *
+ * COSC 3250 - Project 4
+ * Spinlock allows for the usage of multiple cores with mutual exclusion
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
+ *
  * Embedded Xinu, Copyright (C) 2008, 2018. All rights reserved.
  */
 

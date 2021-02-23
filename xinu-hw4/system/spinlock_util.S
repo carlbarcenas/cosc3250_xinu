@@ -1,7 +1,13 @@
 /**
  * @file spinlock_util.S
  * @provides _lock_acquire _lock_release _atomic_increment
- *
+ 
+ * COSC 3250 - Project 4
+ * Spinlock allows for the usage of multiple cores with mutual exclusion
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
+
  * Embedded Xinu, Copyright (C) 2018. All rights reserved.
  */
 
@@ -15,12 +21,12 @@
  * @param lock 	pointer to lock variable
  */
 .globl _lock_acquire
-_lock_acquire:
+_lock_acquire:  //TODO: TESTING
 	.func	_lock_acquire
 
 	pldw	[r0]		/* Preload Data with intention to write		*/
 
-	// TODO: Implement a spinlock acquire method by:
+	// 	 Implement a spinlock acquire method by:
 	//       First, use ldrex to obtain the value at the lock.
 	//       Then, check if it is locked (SPINLOCK_LOCKED).
 	//	 	If it is, then retry
