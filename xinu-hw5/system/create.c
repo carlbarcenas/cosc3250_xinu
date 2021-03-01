@@ -53,8 +53,11 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	/* setup PCB entry for new proc */
 	ppcb->state = PRSUSP;
 
-	// TODO: Setup PCB entry for new process.
-
+	// TODO: Setup PCB entry for new process. note, state already done
+	ppcb->stklen = ssize;
+	ppcb->stkbase = STACKMAGIC; //NOT SURE
+	ppcb->core_affinity = -1;
+	strncpy(ppcb->name, name, strlen(name));
 
 	/* Initialize stack with accounting block. */
 	*saddr = STACKMAGIC;
@@ -75,11 +78,26 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	}
 
 	// TODO: Initialize process context.
-	//
+	for (i=0; i < PREGS; i++)
+	{
+		saddr--;
+		*saddr = 0;
+		// all regs now hold value 0;
+	}
+	
 	// TODO:  Place arguments into activation record.
 	//        See K&R 7.3 for example using va_start, va_arg and
 	//        va_end macros for variable argument functions.
-
+	//        may need a loop
+	va_start(ap, nargs);
+	for (i=0; i < nargs; i++)
+	{
+		// WHAT DO?
+		// savargs[i]=va_arg(ap,int);
+		// savargs[] = pointer to arg saving region, could be PREG_R0 to R4? See arm.h file
+	}
+	va_end(ap);
+	
 	return pid;
 }
 
