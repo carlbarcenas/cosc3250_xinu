@@ -95,6 +95,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 		// WHAT DO?
 		// savargs[i]=va_arg(ap,int);
 		// savargs[] = pointer to arg saving region, could be PREG_R0 to R4? See arm.h file
+		ppcb->regs[i] = va_arg(ap, int); //COMPLETE GUESS
 	}
 	va_end(ap);
 	
