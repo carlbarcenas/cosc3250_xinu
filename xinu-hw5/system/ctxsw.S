@@ -31,10 +31,10 @@ ctxsw:
 	.func ctxsw
 
 	// TODO: Save callee-save ("non-volatile") registers.
-	mov	IP, R0
-	str	R0, [IP, #PREG_R0*4]
-	mov	R0, IP
-	mov	IP, R1
+	//mov	IP, R0
+	//str	R0, [IP, #PREG_R0*4]
+	//mov	R0, IP
+	//mov	IP, R1
 	
 
 	str 	R4, [R0, #PREG_R4*4]
@@ -46,7 +46,7 @@ ctxsw:
 	str 	R10,[R0, #PREG_R10*4]
 	str 	R11,[R0, #PREG_R11*4]
 	str	SP, [R0, #PREG_SP*4]
-	str	LR, [R0, #PREG_LR*4]
+	str	LR, [R0, #PREG_PC*4]
 	//str	PC, [IP, #PREG_PC*4]
 
 	mov	IP, R1
@@ -64,8 +64,8 @@ ctxsw:
 	ldr 	R9, [R1, #PREG_R9*4]
 	ldr 	R10,[R1, #PREG_R10*4]
 	ldr 	R11,[R1, #PREG_R11*4]
-	ldr 	SP, [IP, #PREG_SP*4]
-	ldr 	LR, [IP, #PREG_LR*4]
+	ldr 	SP, [R1, #PREG_SP*4]
+	ldr 	LR, [R1, #PREG_LR*4]
 
 	// TODO: Jump to next function.
 	ldr	PC, [IP, #PREG_PC*4]
