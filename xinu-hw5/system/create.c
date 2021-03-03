@@ -4,6 +4,10 @@
  *
  * COSC 3250 / COEN 4820 Assignment 4
  *
+ * COSC 3250 - Project 4
+ * description
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
  * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  *
  * Embedded XINU, Copyright (C) 2008.  All rights reserved. */
@@ -56,10 +60,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	ppcb->state = PRSUSP;
 
 	// TODO: Setup PCB entry for new process. note, state already done
-	ppcb->stklen = ssize;
+	ppcb->stklen = ssize; //set size of stklen
 	ppcb->stkbase = (void *)saddr; //WAS STACK MAGIC, TRYING saddr
 	ppcb->core_affinity = -1;
-	strncpy(ppcb->name, name, strlen(name));
+	strncpy(ppcb->name, name, strlen(name)); 
 
 	/* Initialize stack with accounting block. */
 	*saddr = STACKMAGIC;
@@ -93,19 +97,21 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 			*saddr = 0;
 		}
 
-	}	
+	}
 	ppcb->regs[PREG_LR] = (int)userret;
 	ppcb->regs[PREG_PC] = (int)funcaddr;
 
-	
+
 	// TODO:  Place arguments into activation record.
 	//        See K&R 7.3 for example using va_start, va_arg and
 	//        va_end macros for variable argument functions.
 	//        may need a loop
+	//in collaboration with: Justin Ethithara, Tyrell To, Simran Bhalla
+
 	if(nargs != 0)	{
 		va_start(ap, nargs);
 		for (i=0; i < nargs; i++)
-		{	
+		{
 			if(i<4)	{
 				ppcb->regs[i] = va_arg(ap, int);
 			}
@@ -116,7 +122,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	}
 	va_end(ap);
 
-	
+
 	ppcb->regs[PREG_SP] = (int)saddr;
 
 
