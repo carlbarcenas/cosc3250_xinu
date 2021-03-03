@@ -84,10 +84,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	{
 		saddr--;
 		if(i==0)	{
-			*saddr = funcaddr;
+			*saddr = (ulong)funcaddr;
 		}
 		else if(i==1)	{
-			*saddr = &userret;
+			*saddr = (ulong)&userret;
 		}
 		else	{
 			*saddr = 0;
@@ -95,6 +95,8 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
 	}	
 	ppcb->regs[PREG_SP] = (int)saddr;
+	ppcb->regs[PREG_LR] = (int)userret;
+	ppcb->regs[PREG_PC] = (int)funcaddr;
 
 	
 	// TODO:  Place arguments into activation record.
