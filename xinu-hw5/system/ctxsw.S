@@ -42,6 +42,7 @@ ctxsw:
 	str	SP, [R0, #PREG_SP*4]
 	str	LR, [R0, #PREG_PC*4]
 
+  //move R1 into IP (intra procedure scratch register)
 	mov	IP, R1
 
 	// TODO: Restore callee-save ("non-volatile") registers.
