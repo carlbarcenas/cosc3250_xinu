@@ -4,6 +4,10 @@
  *
  * COSC 3250 / COEN 4820 Assignment 4
  *
+ * COSC 3250 - Project 5
+ * Context Switch 
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
  * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  *
 /* Embedded XINU, Copyright (C) 2013.  All rights reserved. */
