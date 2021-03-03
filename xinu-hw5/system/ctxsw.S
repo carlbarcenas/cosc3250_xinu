@@ -5,6 +5,12 @@
  * COSC 3250 / COEN 4820 Assignment 5
  * @authors Carl Barcenas, Anthony Nicholas
  * Instructor Sabirat Rubya
+ *
+ *
+ * COSC 3250 - Project 5
+ * Context Switch
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
  * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  *
 /* Embedded XINU, Copyright (C) 2013.  All rights reserved. */
@@ -45,6 +51,7 @@ ctxsw:
 	str	SP, [R0, #PREG_SP*4]
 	str	LR, [R0, #PREG_PC*4]
 
+  //move R1 into IP (intra procedure scratch register)
 	mov	IP, R1
 
 	// TODO: Restore callee-save ("non-volatile") registers.

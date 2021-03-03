@@ -7,6 +7,13 @@
  * @authors Carl Barcenas, Anthony Nicholas
  * NOTE: Collaborated with some groups for some parts
  * Instructor Sabirat Rubya
+=======
+ * COSC 3250 / COEN 4820 Assignment 4
+ *
+ * COSC 3250 - Project 4
+ * description
+ * @authors Carl Barcenas, Anthony Nicholas
+ * Instructor Sabirat Rubiya
  * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  *
  * Embedded XINU, Copyright (C) 2008.  All rights reserved. */
@@ -60,9 +67,11 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
   	// TODO: Setup PCB entry for new process. note, state already done
 	ppcb->stklen = ssize;
+	// TODO: Setup PCB entry for new process. note, state already done
+	ppcb->stklen = ssize; //set size of stklen
 	ppcb->stkbase = (void *)saddr; //WAS STACK MAGIC, TRYING saddr
 	ppcb->core_affinity = -1;
-	strncpy(ppcb->name, name, strlen(name));
+	strncpy(ppcb->name, name, strlen(name)); 
 
 	/* Initialize stack with accounting block. */
 	*saddr = STACKMAGIC;
@@ -96,11 +105,11 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 			*saddr = 0;
 		}
 
-	}	
+	}
 	ppcb->regs[PREG_LR] = (int)userret;
 	ppcb->regs[PREG_PC] = (int)funcaddr;
 
-	
+
 	// TODO:  Place arguments into activation record.
 	//        See K&R 7.3 for example using va_start, va_arg and
 	//        va_end macros for variable argument functions.
@@ -115,7 +124,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 			ppcb->regs[i] = *saddr;
 			saddr++;
 		}
-		saddr = saddr - nargs;
+		saddr = saddr - nargs; // Shift saddr back to bottom of stack
 	}
 	else if(nargs > 4)	// When nargs > 4
 	{
@@ -136,7 +145,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	}
 	va_end(ap);
 
-	
+
 	ppcb->regs[PREG_SP] = (int)saddr;
 
 
