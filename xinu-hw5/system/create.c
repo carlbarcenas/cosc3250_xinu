@@ -2,8 +2,11 @@
  * @file create.c
  * @provides create, newpid, userret
  *
- * COSC 3250 / COEN 4820 Assignment 4
- *
+ * COSC 3250 / COEN 4820 Assignment 5
+ * Initializes a new Process Control Block
+ * @authors Carl Barcenas, Anthony Nicholas
+ * NOTE: Collaborated with some groups for some parts
+ * Instructor Sabirat Rubya
  * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  *
  * Embedded XINU, Copyright (C) 2008.  All rights reserved. */
@@ -55,7 +58,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	/* setup PCB entry for new proc */
 	ppcb->state = PRSUSP;
 
-	// TODO: Setup PCB entry for new process. note, state already done
+  	// TODO: Setup PCB entry for new process. note, state already done
 	ppcb->stklen = ssize;
 	ppcb->stkbase = (void *)saddr; //WAS STACK MAGIC, TRYING saddr
 	ppcb->core_affinity = -1;
@@ -101,18 +104,35 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	// TODO:  Place arguments into activation record.
 	//        See K&R 7.3 for example using va_start, va_arg and
 	//        va_end macros for variable argument functions.
-	//        may need a loop
-	if(nargs != 0)	{
-		va_start(ap, nargs);
-		for (i=0; i < nargs; i++)
-		{	
-			if(i<4)	{
-				ppcb->regs[i] = va_arg(ap, int);
-			}
-			else	{
-				*saddr++ = va_arg(ap, int);
-			}
+	//        may need a loop? max of 4 args?
+	//	  in collaboration with Justin Ethitara, Tyrell To, Simran Bhalla
+	va_start(ap, nargs);
+	if(nargs > 0 && nargs <= 4)	// When nargs < 4
+	{
+		for(i=0; i < nargs; i++) // Place args into regs[0] to regs[3]
+		{
+			*saddr = va_arg(ap,int);
+			ppcb->regs[i] = *saddr;
+			saddr++;
 		}
+		saddr = saddr - nargs;
+	}
+	else if(nargs > 4)	// When nargs > 4
+	{
+		for(i=0; i < 4; i++)
+		{
+			*saddr = va_arg(ap, int);
+			ppcb->regs[i] = (int) *saddr;	// for first 4 args, place into regs[0] to regs[3]
+			saddr++;
+		}
+		saddr = saddr + 11; // shift saddr up to pads
+		for(i=0; i<pads; i++)
+		{
+			saddr++;
+			*saddr = va_arg(ap, int);
+		}
+		saddr = saddr - 3;	// shift saddr back down to Arg4
+		
 	}
 	va_end(ap);
 
