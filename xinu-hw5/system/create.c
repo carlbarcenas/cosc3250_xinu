@@ -3,8 +3,10 @@
  * @provides create, newpid, userret
  *
  * COSC 3250 / COEN 4820 Assignment 4
- */
-/* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
+ *
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
+ *
+ * Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
 #include <arm.h>
 #include <xinu.h>
@@ -55,7 +57,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
 	// TODO: Setup PCB entry for new process. note, state already done
 	ppcb->stklen = ssize;
-	ppcb->stkbase = STACKMAGIC; //NOT SURE
+	ppcb->stkbase = (void *)saddr; //WAS STACK MAGIC, TRYING saddr
 	ppcb->core_affinity = -1;
 	strncpy(ppcb->name, name, strlen(name));
 
@@ -81,9 +83,19 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	for (i=0; i < PREGS; i++)
 	{
 		saddr--;
-		*saddr = 0;
-		// all regs now hold value 0;
-	}
+		if(i==0)	{
+			*saddr = funcaddr;
+		}
+		else if(i==1)	{
+			*saddr = &userret;
+		}
+		else	{
+			*saddr = 0;
+		}
+
+	}	
+	ppcb->regs[PREG_SP] = (int)saddr;
+
 	
 	// TODO:  Place arguments into activation record.
 	//        See K&R 7.3 for example using va_start, va_arg and
@@ -92,12 +104,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 	va_start(ap, nargs);
 	for (i=0; i < nargs; i++)
 	{
-		// WHAT DO?
-		// savargs[i]=va_arg(ap,int);
-		// savargs[] = pointer to arg saving region, could be PREG_R0 to R4? See arm.h file
 		ppcb->regs[i] = va_arg(ap, int); //COMPLETE GUESS
 	}
 	va_end(ap);
+
 	
 	return pid;
 }
