@@ -3,6 +3,10 @@
  * @provides resched
  *
  * COSC 3250 / COEN 4820 Assignment 4
+ *
+ *
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
+ *
  */
 /* Embedded XINU, Copyright (C) 2008.  All rights reserved. */
 
@@ -22,6 +26,8 @@ syscall resched(void)
     pcb *oldproc;               /* pointer to old process entry */
     pcb *newproc;               /* pointer to new process entry */
 
+    pid_typ temp; // DELETEME?
+
     uint cpuid = getcpuid();
 
     oldproc = &proctab[currpid[cpuid]];
@@ -34,7 +40,32 @@ syscall resched(void)
     //
     //       Reference include/clock.h to find more information
     //       about the quantums and how aging should behave.
+	
+	promote_medium[cpuid]--; // Decrement promote_medium
 
+	if(promote_medium[cpuid] == 0)	{
+		promote_medium[cpuid] = QUANTUM; // Reset quanta value
+		promote_low[cpuid]--; // Decrement promote_low
+		// Dequeue priority_med, enqueue to priority_high
+		temp = dequeue(readylist[cpuid][PRIORITY_MED]);
+
+		if(temp == EMPTY)	{
+			kprintf("Readylist for core %i / priority %i is empty...\r\n", cpuid, PRIORITY_MED);
+		}
+		else {
+			enqueue(temp, readylist[cpuid][PRIORITY_HIGH]);
+		}
+	}
+	
+	if(promote_low[cpuid] == 0)	{
+		temp = dequeue(readylist[cpuid][PRIORITY_LOW]);
+		if(temp == EMPTY)	{
+			kprintf("Readylist for core %i / priority %i is empty...\r\n", cpuid, PRIORITY_LOW);
+		}
+		else	{
+			enqueue(temp, readylist[cpuid][PRIORITY_MED]);
+		}
+	}
 
 #endif
 

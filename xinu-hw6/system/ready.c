@@ -45,7 +45,7 @@ syscall ready(pid_typ pid, bool resch, uint core)
     // NOTE2:
     //       The core_affinity and priority are values you should 
     //       be able to get from the process's process control block.
-
+	enqueue(pid, readylist[ppcb->core_affinity][ppcb->priority]);
 
 
 
