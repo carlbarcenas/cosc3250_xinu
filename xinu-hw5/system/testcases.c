@@ -139,7 +139,7 @@ void testcases(void)
         	break;
 
     	case '2':
-        	// Create three copies of a process, and let them play.
+     	  	// Create three copies of a process, and let them play.
         	ready(create((void *)testmain, INITSTK, "MAIN1", 2, 0, NULL), RESCHED_NO , 0);
         	ready(create((void *)testmain, INITSTK, "MAIN2", 2, 0, NULL), RESCHED_NO , 0);
         	ready(create((void *)testmain, INITSTK, "MAIN3", 2, 0, NULL), RESCHED_YES, 0);

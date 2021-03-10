@@ -46,23 +46,22 @@ syscall resched(void)
 	if(promote_medium[cpuid] == 0)	{
 		promote_medium[cpuid] = QUANTUM; // Reset quanta value
 		promote_low[cpuid]--; // Decrement promote_low
+		
 		// Dequeue priority_med, enqueue to priority_high
 		temp = dequeue(readylist[cpuid][PRIORITY_MED]);
 
-		if(temp == EMPTY)	{
-			kprintf("Readylist for core %i / priority %i is empty...\r\n", cpuid, PRIORITY_MED);
-		}
-		else {
+		if(temp != EMPTY)	{
 			enqueue(temp, readylist[cpuid][PRIORITY_HIGH]);
 		}
 	}
 	
 	if(promote_low[cpuid] == 0)	{
+		promote_low[cpuid] = QUANTUM; // Reset quanta value
+		
+		// Check for empty
 		temp = dequeue(readylist[cpuid][PRIORITY_LOW]);
-		if(temp == EMPTY)	{
-			kprintf("Readylist for core %i / priority %i is empty...\r\n", cpuid, PRIORITY_LOW);
-		}
-		else	{
+
+		if(temp != EMPTY)	{
 			enqueue(temp, readylist[cpuid][PRIORITY_MED]);
 		}
 	}

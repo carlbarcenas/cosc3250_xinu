@@ -58,15 +58,7 @@ void printpid(int times)
     }
 }
 
-void longprocess()	{
-	int i = 0;
-	kprintf("Looping...\r\n");
 
-	for(i = 0; i < 60000; i++)	{
-
-	}
-
-}
 
 /**
  * testcases - called after initialization completes to test things.
@@ -120,7 +112,7 @@ void testcases(void)
         kprintf("AGING is enabled.\r\n");
 
         // TODO: Create a testcase that demonstrates aging 
-	kprintf("eat my cheeks you darn hippie");
+	
 
 #else
         // STARVING TESTCASE
