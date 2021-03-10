@@ -26,7 +26,7 @@ syscall resched(void)
     pcb *oldproc;               /* pointer to old process entry */
     pcb *newproc;               /* pointer to new process entry */
 
-    pid_typ temp; // DELETEME?
+    pid_typ temp;
 
     uint cpuid = getcpuid();
 
@@ -41,24 +41,30 @@ syscall resched(void)
     //       Reference include/clock.h to find more information
     //       about the quantums and how aging should behave.
 	
-	promote_medium[cpuid]--; // Decrement promote_medium
+	// Decrement promote_medium every resched()
+	promote_medium[cpuid]--;
 
-	if(promote_medium[cpuid] == 0)	{
-		promote_medium[cpuid] = QUANTUM; // Reset quanta value
-		promote_low[cpuid]--; // Decrement promote_low
+	if(promote_medium[cpuid] <= 0)	{
+		// Reset quanta value
+		promote_medium[cpuid] = QUANTUM;
 		
-		// Dequeue priority_med, enqueue to priority_high
+		// Dequeue priority_med
 		temp = dequeue(readylist[cpuid][PRIORITY_MED]);
-
+	
+		// Promote medium priority if not empty
 		if(temp != EMPTY)	{
+			// Enqueue to process to next priority
 			enqueue(temp, readylist[cpuid][PRIORITY_HIGH]);
+			// Decrement promote_low
+			promote_low[cpuid]--;
 		}
 	}
 	
-	if(promote_low[cpuid] == 0)	{
-		promote_low[cpuid] = QUANTUM; // Reset quanta value
+	if(promote_low[cpuid] <= 0)	{
+		// Reset quanta value
+		promote_low[cpuid] = QUANTUM;
 		
-		// Check for empty
+		// Same process as above
 		temp = dequeue(readylist[cpuid][PRIORITY_LOW]);
 
 		if(temp != EMPTY)	{
