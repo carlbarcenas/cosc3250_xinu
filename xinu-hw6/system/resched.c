@@ -47,16 +47,16 @@ syscall resched(void)
 	if(promote_medium[cpuid] <= 0)	{
 		// Reset quanta value
 		promote_medium[cpuid] = QUANTUM;
-		
+		// Decrement low quanta value
+		promote_low[cpuid]--;		
+
 		// Dequeue priority_med
 		temp = dequeue(readylist[cpuid][PRIORITY_MED]);
-	
+
 		// Promote medium priority if not empty
 		if(temp != EMPTY)	{
 			// Enqueue to process to next priority
 			enqueue(temp, readylist[cpuid][PRIORITY_HIGH]);
-			// Decrement promote_low
-			promote_low[cpuid]--;
 		}
 	}
 	
