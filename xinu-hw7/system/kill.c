@@ -39,6 +39,8 @@ syscall kill(int pid)
 //              extern void halt(void);
 //              halt();
     }
+	
+	freemem(ppcb->stkbase, ppcb->stklen);
 
     switch (ppcb->state)
     {

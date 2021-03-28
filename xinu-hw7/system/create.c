@@ -22,12 +22,11 @@
 #include <xinu.h>
 
 /* Assembly routine for atomic operations */
-extern int _atomic_increment_post(int *);
-extern int _atomic_increment_limit(int *, int);
+extern int _atomic_increment(int *);
+extern int _atomic_increment_mod(int *, int);
 
 static pid_typ newpid(void);
 void userret(void);
-void *getstk(ulong);
 
 /**
  * Create a new process to start running a function.
@@ -52,7 +51,7 @@ syscall create(void *funcaddr, ulong ssize, ulong prior, char *name, ulong nargs
 		ssize = MINSTK;
 	ssize = (ulong)(ssize + 3) & 0xFFFFFFFC;
 	/* round up to even boundary    */
-	saddr = (ulong *)getstk(ssize);     /* allocate new stack and pid   */
+	saddr = (ulong *)getmem(ssize);     /* allocate new stack and pid   */
 	pid = newpid();
 	/* a little error checking      */
 	if ((((ulong *)SYSERR) == saddr) || (SYSERR == pid))
@@ -60,7 +59,7 @@ syscall create(void *funcaddr, ulong ssize, ulong prior, char *name, ulong nargs
 		return SYSERR;
 	}
 
-	_atomic_increment_post(&numproc);
+	_atomic_increment(&numproc);
 
 	ppcb = &proctab[pid];
 	/* setup PCB entry for new proc */
@@ -83,6 +82,7 @@ syscall create(void *funcaddr, ulong ssize, ulong prior, char *name, ulong nargs
 
 
 	/* Initialize stack with accounting block. */
+	saddr = ((ulong)saddr) + ssize-4;
 	*saddr = STACKMAGIC;
 	*--saddr = pid;
 	*--saddr = ppcb->stklen;
@@ -173,7 +173,7 @@ static pid_typ newpid(void)
 	for (pid = 0; pid < NPROC; pid++)
 	{                           /* check all NPROC slots    */
 		//        nextpid = (nextpid + 1) % NPROC;
-		_atomic_increment_limit(&nextpid, NPROC);
+		_atomic_increment_mod(&nextpid, NPROC);
 		if (PRFREE == proctab[nextpid].state)
 		{
 			return nextpid;
