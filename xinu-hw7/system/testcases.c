@@ -64,6 +64,13 @@ void loopylarry()
 	}
 }
 
+void printFreelist()	{
+	uint cpuid = getcpuid();
+	//TODO: PRINT FREELIST
+	
+
+}
+
 
 
 /**

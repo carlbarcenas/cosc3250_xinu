@@ -1,8 +1,9 @@
 /**
  * @file freemem.c
  *
- */
-/* Embedded Xinu, Copyright (C) 2009.  All rights reserved. */
+ *
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
+ * Embedded Xinu, Copyright (C) 2009.  All rights reserved. */
 
 #include <xinu.h>
 
@@ -51,6 +52,45 @@ syscall freemem(void *memptr, ulong nbytes)
      *      - Coalesce with previous block if adjacent
      *      - Coalesce with next block if adjacent
      */
+	// { DETERMINE CORRECT FREELIST }
+	int i;
+	int cpuid = -1;
+	ulong startaddr, endaddr;
+
+	for(i = 0; i <= 4; i++)	{ // Loop through 4 core values
+		startaddr = freelist[i].base;	// Get start address of freelist
+		endaddr = freelist[i].base + freelist[i].bound;  // Get end address of freelist
+		if( block > startaddr  &&  block < endaddr )	{ // Check if block addr within freelist address range
+			cpuid = i;	// Set cpuid
+			break;		// Escape loop
+		}
+	}
+	if( cpuid == -1 )	{	// Error checking
+		return SYSERR;
+	}
+
+	// { ACQUIRE MEMORY LOCK }
+	lock_acquire(freelist[cpuid].memlock);
+
+	// { FIND WHERE MEMBLOCK GOES IN FREELIST }
+	if( block > freelist[cpuid].base && block < freelist[cpuid].head )	{ // First, check if behind head memblk
+		prev = NULL;
+		next = freelist[cpuid].head;
+	}
+	else	{	// If no space behind head memblk, loop through freelist
+		prev = freelist[cpuid].head;
+		next = prev->next;
+		while(1) {
+			if( block > prev && block < next )	{	// Found where block goes
+				break;					// break out of loop
+			}
+			else	{ // Continue loop
+				prev = next;
+				next = next->next;
+			}
+		}
+	}
+
 
 	restore(im);
     return OK;
