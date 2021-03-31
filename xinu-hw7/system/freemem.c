@@ -52,46 +52,86 @@ syscall freemem(void *memptr, ulong nbytes)
      *      - Coalesce with previous block if adjacent
      *      - Coalesce with next block if adjacent
      */
-	// { DETERMINE CORRECT FREELIST }
+// -=-=-{ DETERMINE CORRECT FREELIST }-=-=-
 	int i;
-	int cpuid = -1;
-	ulong startaddr, endaddr;
+        int cpuid = -1;
+        ulong startaddr, endaddr;
 
-	for(i = 0; i <= 4; i++)	{ // Loop through 4 core values
-		startaddr = freelist[i].base;	// Get start address of freelist
-		endaddr = freelist[i].base + freelist[i].bound;  // Get end address of freelist
-		if( block > startaddr  &&  block < endaddr )	{ // Check if block addr within freelist address range
-			cpuid = i;	// Set cpuid
-			break;		// Escape loop
-		}
-	}
-	if( cpuid == -1 )	{	// Error checking
-		return SYSERR;
-	}
+        for(i = 0; i <= 3; i++) { // Loop through 4 core values
+                startaddr = freelist[i].base;   // Get start address of freelist
+                endaddr = freelist[i].base + freelist[i].bound;  // Get end address of freelist
+		if( (ulong)block >= startaddr  &&  (ulong)block <= endaddr )      {
+                // Check if block addr within freelist address range
+                        cpuid = i;      // Set cpuid
+                        break;          // Escape loop
+                }
+        }
+        if( cpuid == -1 )       {       // Error checking
+                restore(im);
+                return SYSERR;
+        }	
 
-	// { ACQUIRE MEMORY LOCK }
+
+// -=-=-{ ACQUIRE MEMORY LOCK }-=-=-
 	lock_acquire(freelist[cpuid].memlock);
 
-	// { FIND WHERE MEMBLOCK GOES IN FREELIST }
-	if( block > freelist[cpuid].base && block < freelist[cpuid].head )	{ // First, check if behind head memblk
-		prev = NULL;
-		next = freelist[cpuid].head;
-	}
-	else	{	// If no space behind head memblk, loop through freelist
-		prev = freelist[cpuid].head;
-		next = prev->next;
-		while(1) {
-			if( block > prev && block < next )	{	// Found where block goes
-				break;					// break out of loop
-			}
-			else	{ // Continue loop
-				prev = next;
-				next = next->next;
-			}
-		}
+// -=-=-{ FIND WHERE MEMBLOCK GOES IN FREELIST }-=-=-
+	prev = (memblk *)&freelist[cpuid];
+	next = freelist[cpuid].head;
+	while( block > next )	{		// Stop loop when in between prev and next
+							//stops when block is behind next
+		prev = next;
+		next = next->next;
 	}
 
+// -=-=-{ FIND TOP OF PREVIOUS MEMBLOCK }-=-=-
+	if( (ulong)prev == (ulong)&freelist[cpuid] )	{ // If block behind head and in front of freelistbase
+		top = NULL;
+	}
+	else	{
+		top = (ulong)prev + (prev->length);
+	}
 
+// -=-=-{ CHECK OVERLAP }-=-=-
+	if( (ulong)block < top )	{ // Check overlap with prev block
+		lock_release(freelist[cpuid].memlock);
+		restore(im);
+		return SYSERR;
+	}
+	else if( ( next != NULL ) && (((ulong)block + block->length) > (ulong)next) )	{ 
+	// Check overlap with next block
+		lock_release(freelist[cpuid].memlock);
+		restore(im);
+		return SYSERR;
+	}
+	
+	// Place block into freelist if no overlap
+	prev->next = block;
+	block->next = next;
+	block->length = nbytes;
+	
+
+// -=-=-{ COALESCE }-=-=-
+	// block addr == top of prev addr
+	ulong prevTop = (ulong)prev + (prev->length);
+	ulong blockTop = (ulong)block + (block->length);
+
+	if((ulong)block == prevTop) { // Coalesce with prev block
+		prev->length += block->length;
+		prev->next = next;
+		block = prev;
+	}
+	
+	// top of block addr == next addr
+	if(blockTop  == (ulong)next)	{ // Coalesce with next block
+		block->next = next->next;
+		block->length += next->length;
+	}
+	
+
+
+	freelist[cpuid].length += nbytes;
+	lock_release(freelist[cpuid].memlock);
 	restore(im);
-    return OK;
+	return OK;
 }

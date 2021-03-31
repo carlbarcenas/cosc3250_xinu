@@ -82,6 +82,7 @@ syscall create(void *funcaddr, ulong ssize, ulong prior, char *name, ulong nargs
 
 
 	/* Initialize stack with accounting block. */
+	//saddr = ((ulong)saddr) + ssize-4
 	saddr = ((ulong)saddr) + ssize-4;
 	*saddr = STACKMAGIC;
 	*--saddr = pid;

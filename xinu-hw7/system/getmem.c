@@ -45,39 +45,40 @@ void *getmem(ulong nbytes)
      *      - Release memory lock
      *      - return memory address if successful
      */
-	// GET CPUID
+// -=-=-{ GET CPUID }-=-=-
 	uint cpuid = getcpuid();
 	curr = freelist[cpuid].head;
-	prev = NULL;
+	prev = (memblk *)&freelist[cpuid]; //TODO
 
-	// Acquire memory lock
+
+// -=-=-{ Acquire memory lock }-=-=-
 	lock_acquire(freelist[cpuid].memlock);
 
-	// Traverse through freelist
+// -=-=-{ Traverse through freelist }-=-=-
 	while(curr != NULL)	{
-		// If block is larger than nbytes
+		// If block is larger than nbytes, MOST LIKELY
 		if(curr->length > nbytes)	{
-			leftover = (memblk *)(curr + nbytes);	// Create new memblock
-			prev->next = leftover;	// Place new memblock into freelist
-			
-			// Memblock element allocation
+			leftover = (memblk *)((ulong)curr + nbytes);	// Create new memblock
 			leftover->next = curr->next;
 			leftover->length = curr->length - nbytes;
+
+			// Memblock element allocation
+			prev->next = leftover;
+			curr->length = nbytes;
 
 			// Recalculate freelist length
 			freelist[cpuid].length -= nbytes;
 
 			lock_release(freelist[cpuid].memlock); // Release lock
-			
 			restore(im);	// DELETEME?
 			return (void *)curr; // Return the address of the memblock			
 		}
 		// If block is exactly nbytes
 		else if(curr->length == nbytes)	{
 			prev->next = curr->next; // Remove block from freelist
-			freelist[cpuid].length -= nbytes; // Resize memhead length
+			freelist[cpuid].length -= nbytes; // Resize freelist length
+			
 			lock_release(freelist[cpuid].memlock); // Release lock
-
 			restore(im);	// DELETEME?
 			return (void *)curr; // Return the address 
 		}

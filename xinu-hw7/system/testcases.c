@@ -53,7 +53,7 @@ void printpid(int times)
     }
 }
 
-void loopylarry()
+void loopylarry(void)
 {	
 	uint cpuid = getcpuid();
 
@@ -64,11 +64,20 @@ void loopylarry()
 	}
 }
 
-void printFreelist()	{
-	uint cpuid = getcpuid();
-	//TODO: PRINT FREELIST
-	
+void printFreelist(int core)	{
+	memblk *curr;
+	curr = freelist[core].head;
 
+	kprintf("-=-=-=-=-START PRINT-=-=-=-=-\r\n");
+	while(curr != NULL)	{
+		kprintf("\r\nAddr: %d \r\n", curr);
+		kprintf("Length: %d \r\n", curr->length);
+		kprintf("End Addr: %d \r\n", ((ulong)(curr) + (curr->length)));
+		kprintf("-----------------\r\n");
+		curr = curr->next;
+	}
+	kprintf("-=-=-=-=-END PRINT-=-=-=-=-\r\n");
+	
 }
 
 
@@ -82,10 +91,23 @@ void testcases(void)
 
     kprintf("===TEST BEGIN===\r\n");
     kprintf("0) Test priority scheduling\r\n");
+    kprintf("1) Priorities in Isolation \r\n");
+    kprintf("2) Getmem Testing\r\n");
+    kprintf("3) Freemem Testing\r\n");
+    kprintf("4) Malloc Testing \r\n");
+    kprintf("5) Free Testing \r\n");
+    kprintf("6) freelist[cpuid].base vs &freelist[cpuid]\r\n");
+    kprintf("7) Coalescing Testing \r\n");
     kprintf("\'A\') Aging / Starvation testcase\r\n");
     kprintf("\'P\') Preemption testcase\r\n");
 
+    kprintf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\r\n\n\n\n");
+
     // TODO: Test your operating system!
+	ulong *blk;
+	ulong *blk2;
+	ulong *blk3;
+
 
     c = kgetc();
     switch (c)
@@ -118,6 +140,79 @@ void testcases(void)
 	kill(10);
 	break;
 
+    case '2':
+	// TODO: getmem testing
+	printFreelist(getcpuid());
+
+	getmem((ulong)64);
+	kprintf("---------Getting 64 bytes-------\r\n");
+	
+	printFreelist(getcpuid());
+
+	getmem((ulong)256);
+	kprintf("---------Getting 256 bytes-------\r\n");
+
+	printFreelist(getcpuid());
+	break;
+
+    case '3':
+	printFreelist(getcpuid());
+
+	blk = getmem(64);
+	kprintf("\n\n----------Getting 64 bytes--------\r\n\n");
+
+	printFreelist(getcpuid());
+
+	freemem(blk, 64);
+	kprintf("\n\n----------Freeing 64 bytes--------\r\n\n");
+
+	printFreelist(getcpuid());
+	break;
+
+    case '4':
+	printFreelist(0);
+	malloc(1024);
+	kprintf("\n\n---------MALLOC(1024)-----------\r\n\n");
+	printFreelist(0);
+	break;
+
+    case '5':
+	printFreelist(0);
+	blk = malloc(1024);
+	kprintf("\n\n---------MALLOC(1024)----------\r\n\n");
+	printFreelist(0);
+	free((void*) blk);
+	kprintf("\n\n----------FREE--------------\r\n\n");
+	printFreelist(0);
+	break;
+
+    case '6':
+	kprintf(".base: %d \r\n&: %d \r\n", (ulong)freelist[getcpuid()].base, (ulong)&freelist[getcpuid()]);
+	break;
+
+    case '7':
+	kprintf("Initial Case: \r\n");
+	printFreelist(0);
+
+	kprintf("context: 3 blocks attained from getmem, blk=1024, blk2=2048, blk3=512\r\n");
+	blk = getmem(1024);
+	blk2 = getmem(2048);
+	blk3 = getmem(512);
+	printFreelist(0);
+
+	kprintf("\nFREEING BLK2\r\n");
+	freemem(blk2, 2048);
+	printFreelist(0);
+
+	kprintf("\nFREEING BLK3, should coalesce\r\n");
+	freemem(blk3, 512);
+	printFreelist(0);
+
+	kprintf("\nFREEING BLK, freelist should not have 2 entities\r\n");
+	freemem(blk, 1024);
+	printFreelist(0);
+	
+	break;
 
     case 'a':
     case 'A':

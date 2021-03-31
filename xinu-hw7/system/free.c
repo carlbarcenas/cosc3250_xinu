@@ -22,7 +22,28 @@ syscall free(void *ptr)
      *      1) set block to point to memblock to be free'd (ptr)
      *      2) find accounting information of the memblock
      *      3) call freemem on the block with its length
-     */
+     */	
+
+	// Set block to point to memblock to be freed
+	block = (memblk *)ptr;
+
+	// Find accounting info of memblock
+	block = (memblk *)((ulong)block - sizeof(memblk));
+	
+	// Error checking
+	if(block->next != block)	{
+		return SYSERR;
+	}
+
+	// Call freemem
+	int freesult;
+	freesult = freemem(block, block->length);
+	if(freesult == OK)	{	// Error checking 2: Electric Boogaloo
+		return OK;
+	}
+	else	{
+		return SYSERR;
+	}
 
     return OK;
 }
