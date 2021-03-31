@@ -76,6 +76,7 @@ syscall freemem(void *memptr, ulong nbytes)
 	lock_acquire(freelist[cpuid].memlock);
 
 // -=-=-{ FIND WHERE MEMBLOCK GOES IN FREELIST }-=-=-
+// 	// Initialize prev, next
 	prev = (memblk *)&freelist[cpuid];
 	next = freelist[cpuid].head;
 	while( block > next )	{		// Stop loop when in between prev and next
@@ -85,7 +86,7 @@ syscall freemem(void *memptr, ulong nbytes)
 	}
 
 // -=-=-{ FIND TOP OF PREVIOUS MEMBLOCK }-=-=-
-	if( (ulong)prev == (ulong)&freelist[cpuid] )	{ // If block behind head and in front of freelistbase
+	if( (ulong)prev == (ulong)&freelist[cpuid] )	{ // If desired block is behind head of freelist
 		top = NULL;
 	}
 	else	{
@@ -93,26 +94,30 @@ syscall freemem(void *memptr, ulong nbytes)
 	}
 
 // -=-=-{ CHECK OVERLAP }-=-=-
-	if( (ulong)block < top )	{ // Check overlap with prev block
+	// Check overlap with previous block
+	if( (ulong)block < top )	{ 
 		lock_release(freelist[cpuid].memlock);
 		restore(im);
 		return SYSERR;
 	}
-	else if( ( next != NULL ) && (((ulong)block + block->length) > (ulong)next) )	{ 
 	// Check overlap with next block
+	else if( ( next != NULL ) && (((ulong)block + block->length) > (ulong)next) )	{ 
 		lock_release(freelist[cpuid].memlock);
 		restore(im);
 		return SYSERR;
 	}
 	
 	// Place block into freelist if no overlap
+	/*if(top == NULL)	{	// DELETEME?
+		freelist[cpuid].head = block;
+	}*/
 	prev->next = block;
 	block->next = next;
 	block->length = nbytes;
 	
 
 // -=-=-{ COALESCE }-=-=-
-	// block addr == top of prev addr
+	// Calculate the top addresses of prev and block
 	ulong prevTop = (ulong)prev + (prev->length);
 	ulong blockTop = (ulong)block + (block->length);
 
@@ -122,15 +127,14 @@ syscall freemem(void *memptr, ulong nbytes)
 		block = prev;
 	}
 	
-	// top of block addr == next addr
 	if(blockTop  == (ulong)next)	{ // Coalesce with next block
 		block->next = next->next;
 		block->length += next->length;
 	}
 	
 
-
-	freelist[cpuid].length += nbytes;
+// Return
+	freelist[cpuid].length += nbytes; // Resize freelist
 	lock_release(freelist[cpuid].memlock);
 	restore(im);
 	return OK;

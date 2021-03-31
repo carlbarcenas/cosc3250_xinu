@@ -98,6 +98,8 @@ void testcases(void)
     kprintf("5) Free Testing \r\n");
     kprintf("6) freelist[cpuid].base vs &freelist[cpuid]\r\n");
     kprintf("7) Coalescing Testing \r\n");
+    kprintf("8) freemem overlapping freelist base\r\n");
+    kprintf("9) freelist head testing\r\n");
     kprintf("\'A\') Aging / Starvation testcase\r\n");
     kprintf("\'P\') Preemption testcase\r\n");
 
@@ -213,6 +215,29 @@ void testcases(void)
 	printFreelist(0);
 	
 	break;
+
+    case '8':
+	printFreelist(0);
+	blk = (ulong *)(&freelist[0]-1024);
+	if(freemem(blk, 1024) == SYSERR)	{
+		kprintf("SYSERR Returned, pass\r\n");
+	}
+	else	{
+		kprintf("Would this even run?");
+	}
+	printFreelist(0);
+	break;
+   
+    case '9': // HEAD TESTING
+	kprintf("Head before getmem: %d\r\n", freelist[0].head);
+	blk = getmem(1024);
+	blk2 = getmem(1024);
+	blk3 = getmem(1024);
+	kprintf("Head after getmem: %d\r\n", freelist[0].head);
+	freemem(blk, 1024);
+	kprintf("Head after freeing blk 1: %d\r\n", freelist[0].head);
+	break;
+	
 
     case 'a':
     case 'A':
