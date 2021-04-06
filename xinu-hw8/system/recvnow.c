@@ -1,7 +1,8 @@
 /**
  * @file recvnow.c
  * @provides recvnow
- *
+ *	
+ * TA-BOT:MAILTO carlanthony.barcenas@marquette.edu anthony.nicholas@marquette.edu
  */
 /* Embedded Xinu, Copyright (C) 2020.  All rights resered. */
 
@@ -24,5 +25,17 @@ message recvnow(void)
  	* - check for message, if no messsage, error
  	*   		       else, retrieve & return message
  	*/ 
+
+	lock_acquire(ppcb->msg_var.core_com_lock);
+
+	if(ppcb->msg_var.hasMessage == FALSE)	{
+		lock_release(ppcb->msg_var.core_com_lock);
+		return SYSERR;
+	}
+	else	{
+		msg = ppcb->msg_var.msgin;
+		lock_release(ppcb->msg_var.core_com_lock);
+	}
+
 	return msg;
 }

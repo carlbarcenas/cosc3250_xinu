@@ -26,5 +26,27 @@ syscall sendnow(int pid, message msg)
  	* - Return OK
  	*/
 
+	// PID error checking
+	if(isbadpid(pid))	{
+		return SYSERR;
+	}
+	ppcb = &proctab[pid];
+
+	// Error Checking
+	if(ppcb->msg_var.hasMessage == TRUE)	{
+		return SYSERR;
+	}
+
+
+	lock_acquire(ppcb->msg_var.core_com_lock);	// Lock acquire
+	ppcb->msg_var.msgin = msg;	// Deposit message
+	ppcb->msg_var.hasMessage = TRUE;	// Raise flag
+	
+
+	if(ppcb->state == PRRECV)	{
+		ready(pid, RESCHED_YES, ppcb->core_affinity);
+	}
+
+	lock_release(ppcb->msg_var.core_com_lock);
 	return OK;
 }

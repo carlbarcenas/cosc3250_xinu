@@ -80,6 +80,11 @@ void printFreelist(int core)	{
 	
 }
 
+void receiveMsg(void)	{
+	message recvMesg = recv();
+	kprintf("Message: %d\r\n", recvMesg);
+}
+
 
 
 /**
@@ -88,237 +93,29 @@ void printFreelist(int core)	{
 void testcases(void)
 {
     uchar c;
+    register pcb *ppcb;
+    int result;
+    pid_typ testpid;
 
     kprintf("===TEST BEGIN===\r\n");
-    kprintf("0) Test priority scheduling\r\n");
-    kprintf("1) Priorities in Isolation \r\n");
-    kprintf("2) Getmem Testing\r\n");
-    kprintf("3) Freemem Testing\r\n");
-    kprintf("4) Malloc Testing \r\n");
-    kprintf("5) Free Testing \r\n");
-    kprintf("6) freelist[cpuid].base vs &freelist[cpuid]\r\n");
-    kprintf("7) Coalescing Testing \r\n");
-    kprintf("8) freemem overlapping freelist base\r\n");
-    kprintf("9) freelist head testing\r\n");
-    kprintf("\'A\') Aging / Starvation testcase\r\n");
-    kprintf("\'P\') Preemption testcase\r\n");
-
+    kprintf("1) \r\n");
     kprintf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\r\n\n\n\n");
 
-    // TODO: Test your operating system!
-	ulong *blk;
-	ulong *blk2;
-	ulong *blk3;
 
 
     c = kgetc();
     switch (c)
     {
     case '0':
-        // Run 3 processes with varying priorities
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_HIGH, "PRINTER-A", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_MED, "PRINTER-B", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_LOW, "PRINTER-C", 1,
-               5), RESCHED_YES, 0);
+	testpid = create((void*)receiveMsg, INITSTK, PRIORITY_LOW, "RECV", 0);
+	ready(testpid, RESCHED_YES, getcpuid());
+	ppcb = &proctab[testpid];
+	ppcb->core_affinity = 0;
+	result = sendnow(testpid, 0x5);
+	kprintf("Result: %d\r\n", result);
+	kill(testpid);
         break;
 
-
-    case '1':
-	// Testing priorities in isolation
-	prQueue(readylist[0][PRIORITY_LOW]);
-
-	kprintf("Adding 10 PRIORITY_LOW to queue\r\n");
-
-	proctab[10].priority = PRIORITY_LOW;
-	ready(10, 0, 0);
-
-	prQueue(readylist[0][PRIORITY_LOW]);
-
-	kill(10);
-	break;
-
-    case '2':
-	// TODO: getmem testing
-	printFreelist(getcpuid());
-
-	getmem((ulong)64);
-	kprintf("---------Getting 64 bytes-------\r\n");
-	
-	printFreelist(getcpuid());
-
-	getmem((ulong)256);
-	kprintf("---------Getting 256 bytes-------\r\n");
-
-	printFreelist(getcpuid());
-	break;
-
-    case '3':
-	printFreelist(getcpuid());
-
-	blk = getmem(64);
-	kprintf("\n\n----------Getting 64 bytes--------\r\n\n");
-
-	printFreelist(getcpuid());
-
-	freemem(blk, 64);
-	kprintf("\n\n----------Freeing 64 bytes--------\r\n\n");
-
-	printFreelist(getcpuid());
-	break;
-
-    case '4':
-	printFreelist(0);
-	malloc(1024);
-	kprintf("\n\n---------MALLOC(1024)-----------\r\n\n");
-	printFreelist(0);
-	break;
-
-    case '5':
-	printFreelist(0);
-	blk = malloc(1024);
-	kprintf("\n\n---------MALLOC(1024)----------\r\n\n");
-	printFreelist(0);
-	free((void*) blk);
-	kprintf("\n\n----------FREE--------------\r\n\n");
-	printFreelist(0);
-	break;
-
-    case '6':
-	kprintf(".base: %d \r\n&: %d \r\n", (ulong)freelist[getcpuid()].base, (ulong)&freelist[getcpuid()]);
-	break;
-
-    case '7':
-	kprintf("Initial Case: \r\n");
-	printFreelist(0);
-
-	kprintf("context: 3 blocks attained from getmem, blk=1024, blk2=2048, blk3=512\r\n");
-	blk = getmem(1024);
-	blk2 = getmem(2048);
-	blk3 = getmem(512);
-	printFreelist(0);
-
-	kprintf("\nFREEING BLK2\r\n");
-	freemem(blk2, 2048);
-	printFreelist(0);
-
-	kprintf("\nFREEING BLK3, should coalesce\r\n");
-	freemem(blk3, 512);
-	printFreelist(0);
-
-	kprintf("\nFREEING BLK, freelist should not have 2 entities\r\n");
-	freemem(blk, 1024);
-	printFreelist(0);
-	
-	break;
-
-    case '8':
-	printFreelist(0);
-	blk = (ulong *)(&freelist[0]-1024);
-	if(freemem(blk, 1024) == SYSERR)	{
-		kprintf("SYSERR Returned, pass\r\n");
-	}
-	else	{
-		kprintf("Would this even run?");
-	}
-	printFreelist(0);
-	break;
-   
-    case '9': // HEAD TESTING
-	kprintf("Head before getmem: %d\r\n", freelist[0].head);
-	blk = getmem(1024);
-	blk2 = getmem(1024);
-	blk3 = getmem(1024);
-	kprintf("Head after getmem: %d\r\n", freelist[0].head);
-	freemem(blk, 1024);
-	kprintf("Head after freeing blk 1: %d\r\n", freelist[0].head);
-	break;
-	
-
-    case 'a':
-    case 'A':
-#if AGING
-        // AGING TESTCASE
-        kprintf("AGING is enabled.\r\n");
-	kprintf("At some point, process 6/7 should print above process 4/5.\r\n");
-
-        // TODO: Create a testcase that demonstrates aging 
-	ready(create
-              ((void *)printpid, INITSTK, PRIORITY_HIGH, "PRINTER-A", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_HIGH, "PRINTER-B", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_MED, "PRINTER-C", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_MED, "PRINTER-D", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_LOW, "PRINTER-E", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_LOW, "PRINTER-F", 1,
-               5), RESCHED_YES, 0);
-
-
-
-#else
-        // STARVING TESTCASE
-        kprintf("\r\nAGING is not currently enabled.\r\n");
-	kprintf("Processes should be in order of 4/5(high), 6/7(med), 8/9(low).\r\n");
-
-        // TODO: Create a testcase that demonstrates starvation
-	ready(create
-              ((void *)printpid, INITSTK, PRIORITY_HIGH, "PRINTER-A", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_HIGH, "PRINTER-B", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_MED, "PRINTER-C", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_MED, "PRINTER-D", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_LOW, "PRINTER-E", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)printpid, INITSTK, PRIORITY_LOW, "PRINTER-F", 1,
-               5), RESCHED_YES, 0);
-
-
-#endif
-        break;
-
-    case 'p':
-    case 'P':
-#if PREEMPT
-        // PREEMPTION TESTCASE
-        kprintf("\r\nPreemption is enabled.\r\n");
-
-        // TODO: Create a testcase that demonstrates preemption
-	ready(create
-              ((void *)loopylarry, INITSTK, PRIORITY_LOW, "PRINTER-A", 1,
-             	5), RESCHED_NO, 0);
-        ready(create
-              ((void *)loopylarry, INITSTK, PRIORITY_MED, "PRINTER-B", 1,
-               5), RESCHED_NO, 0);
-        ready(create
-              ((void *)loopylarry, INITSTK, PRIORITY_HIGH, "PRINTER-C", 1,
-               5), RESCHED_YES, 0);
-
-
-#else
-        kprintf("\r\nPreemption is not currently enabled...\r\n");
-#endif
-        break;
 
     default:
         break;
