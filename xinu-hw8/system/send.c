@@ -39,18 +39,18 @@ syscall send(int pid, message msg)
 	// Acquire receiving process lock
 	lock_acquire(rpcb->msg_var.core_com_lock);
 
-	// Retrieve Process Error Checking
-	
 	// Message Interaction:
 	if(rpcb->msg_var.hasMessage == TRUE)	{
 		spcb->state = PRSEND; 	// block sending process
 
-		// Should I release rpcb lock and acquire spcb lock here?
-		//lock_release(rpcb->msg_var.core_com_lock);
-		//lock_acquire(spcb->msg_var.core_com_lock);
+		lock_release(rpcb->msg_var.core_com_lock); // Release rpcb lock to edit spcb
+
+		lock_acquire(spcb->msg_var.core_com_lock); // Acquire spcb lock
 		spcb->msg_var.msgout = msg; 	// put msg into msgout
+		lock_release(spcb->msg_var.core_com_lock);
 		
-		enqueue(currpid[getcpuid()], rpcb->msg_var.msgqueue); // DELETEME?
+		lock_acquire(rpcb->msg_var.core_com_lock);	// Reacquire rpcb lock DELETEME??
+		enqueue(currpid[getcpuid()], rpcb->msg_var.msgqueue);
 		
 		resched();	// call resched
 	}

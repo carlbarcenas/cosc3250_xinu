@@ -80,11 +80,6 @@ void printFreelist(int core)	{
 	
 }
 
-void receiveMsg(void)	{
-	message recvMesg = recv();
-	kprintf("Message: %d\r\n", recvMesg);
-}
-
 
 
 /**
@@ -98,7 +93,7 @@ void testcases(void)
     pid_typ testpid;
 
     kprintf("===TEST BEGIN===\r\n");
-    kprintf("1) \r\n");
+    kprintf("0) \r\n");
     kprintf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\r\n\n\n\n");
 
 
@@ -107,15 +102,8 @@ void testcases(void)
     switch (c)
     {
     case '0':
-	testpid = create((void*)receiveMsg, INITSTK, PRIORITY_LOW, "RECV", 0);
-	ready(testpid, RESCHED_YES, getcpuid());
-	ppcb = &proctab[testpid];
-	ppcb->core_affinity = 0;
-	result = sendnow(testpid, 0x5);
-	kprintf("Result: %d\r\n", result);
-	kill(testpid);
-        break;
 
+	break;
 
     default:
         break;
