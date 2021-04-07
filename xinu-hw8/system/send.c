@@ -60,6 +60,7 @@ syscall send(int pid, message msg)
 		if(rpcb->state == PRRECV)	{
 			ready(pid, RESCHED_YES, rpcb->core_affinity);
 		}
+		
 	}
 
 	lock_release(rpcb->msg_var.core_com_lock); // DELETEME?
