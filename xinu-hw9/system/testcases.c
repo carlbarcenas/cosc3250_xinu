@@ -43,6 +43,19 @@ void testcases(void)
     switch (c)
     {
 
+    case 'a':
+	printf("Getc Works\r\n");
+	break;
+
+    case 'b':
+	putc(c);
+	printf("If 'b' shows, putc works");
+	break;
+
+    case 'c':
+	printf("3.6... Not great, not terrible. We did everything right.\r\n");
+	break;
+
     default:
         break;
     }

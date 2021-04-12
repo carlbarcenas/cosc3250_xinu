@@ -29,9 +29,11 @@ uchar getc(void)
 	 */
 	
 	wait(serial_port.isema);
-	c = (uchar)serial_port.istart;
-	_atomic_decrement((int*)(&(serial_port.icount)));
-	_atomic_increment_mod((int*)(&(serial_port.istart)), UART_IBLEN);
+	c = serial_port.in[serial_port.istart];
+	//_atomic_decrement(&(serial_port.icount));
+	serial_port.icount--; // DELETEME?
+	//_atomic_increment_mod(&(serial_port.istart), UART_IBLEN);
+	serial_port.istart = (serial_port.istart+1)%UART_IBLEN; // DELETEME?
 	
 	
 
@@ -64,10 +66,8 @@ syscall putc(char c)
 	 */
 	if(serial_port.oidle == 1)	{
 		serial_port.oidle = 0;
-		lock_acquire(serial_port.olock);
 		
-		volatile struct pl011_uart_csreg *regptr;	// DELETEME?
-		regptr = (struct pl011_uart_csreg *)0x3F201000;
+		struct pl011_uart_csreg *regptr = serial_port.csr;
 		regptr->dr = (uint)c;
 	}
 	else	{
@@ -75,6 +75,7 @@ syscall putc(char c)
 		lock_acquire(serial_port.olock);
 		serial_port.out[(serial_port.ostart +
 					serial_port.ocount) % UART_OBLEN] = c;
+		serial_port.ocount++;
 		lock_release(serial_port.olock);
 	}
 
