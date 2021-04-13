@@ -67,8 +67,9 @@ syscall putc(char c)
 	if(serial_port.oidle == 1)	{
 		serial_port.oidle = 0;
 		
-		struct pl011_uart_csreg *regptr = serial_port.csr;
-		regptr->dr = (uint)c;
+		volatile struct pl011_uart_csreg *regptr = (struct pl011_uart_csreg*)serial_port.csr;
+		//volatile struct pl011_uart_csreg *regptr = serial_port.csr;
+		regptr->dr = (volatile unsigned int)c;
 	}
 	else	{
 		wait(serial_port.osema);

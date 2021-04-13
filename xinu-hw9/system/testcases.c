@@ -33,8 +33,14 @@ void testcases(void)
 {
     uchar c;
     semaphore testsem;
+    testsem = semcreate(1);
 
     enable();
+
+    printf(" a: getc() testing.\r\n");
+    printf("b: putc() testing.\r\n");
+    printf("c: printf() testing.\r\n");
+    printf("d: basic semaphore signal(n)/wait testing\r\n");
 
     printf("===TEST BEGIN===\r\n");
     
@@ -54,6 +60,27 @@ void testcases(void)
 
     case 'c':
 	printf("3.6... Not great, not terrible. We did everything right.\r\n");
+	break;
+
+    case 'd':
+	printf("Initial semaphore image: \r\n");
+	print_sem(testsem);
+
+	printf("Sending signal to semaphore...\r\n");
+	signal(testsem);
+	print_sem(testsem);
+
+	printf("Telling semaphore to wait...\r\n");
+	wait(testsem);
+	print_sem(testsem);
+
+	printf("Sending 5 signals to semaphore...\r\n");
+	signaln(testsem, 5);
+	print_sem(testsem);
+
+	printf("Freeing semaphore...\r\n");
+	semfree(testsem);
+	print_sem(testsem);
 	break;
 
     default:
