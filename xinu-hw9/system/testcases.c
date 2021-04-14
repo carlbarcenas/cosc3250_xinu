@@ -26,6 +26,31 @@ process testSemWait(semaphore sem)
     return 0;
 }
 
+process loopylarry(semaphore sem)
+{
+	for(int i = 0; i <= 10; i++)	{
+		printf("%d\r\n", i);
+		if(i == 5)	{
+			wait(sem);
+		}
+	}
+	return 0;
+}
+
+process interruptingClyde(semaphore sem)
+{
+	printf("Interrupting Clyds is interrupting this loop\r\n");
+	printf("        _^_^_\r\n");
+	printf("       (<> <>)\r\n");
+	printf("       (  >  )\r\n");
+	printf("        | o |\r\n");
+	printf("        \\   /\r\n");
+	printf("         --- \r\n");
+
+	signal(sem);
+	return 0;
+}
+
 /**
  * testcases - called after initialization completes to test things.
  */
@@ -33,7 +58,6 @@ void testcases(void)
 {
     uchar c;
     semaphore testsem;
-    testsem = semcreate(1);
 
     enable();
 
@@ -41,6 +65,8 @@ void testcases(void)
     printf("b: putc() testing.\r\n");
     printf("c: printf() testing.\r\n");
     printf("d: basic semaphore signal(n)/wait testing\r\n");
+    printf("e: Semaphore lock testing\r\n");
+    printf("f: Semaphore Ordering Test\r\n");
 
     printf("===TEST BEGIN===\r\n");
     
@@ -63,6 +89,7 @@ void testcases(void)
 	break;
 
     case 'd':
+	testsem = semcreate(1);
 	printf("Initial semaphore image: \r\n");
 	print_sem(testsem);
 
@@ -81,6 +108,30 @@ void testcases(void)
 	printf("Freeing semaphore...\r\n");
 	semfree(testsem);
 	print_sem(testsem);
+	break;
+
+    case 'e':
+	testsem = semcreate(1); // Initialize semaphore with count = 1
+	
+	// wait(testsem); BECAUSE TESTSEMWAIT() ALREADY HAS WAIT(), DO NOT NEED THIS
+	// Critical section
+	ready(create((void*)testSemWait, INITSTK, PRIORITY_HIGH, "t0", 1, testsem),
+		RESCHED_YES, 0);	// testSemWait on core 0.
+	ready(create((void*)testSemWait, INITSTK, PRIORITY_HIGH, "t1", 1, testsem),
+                RESCHED_YES, 1);        // testSemWait on core 1.
+	printf("This should print before the 2nd 'process after wait' statement...\r\n");
+	signal(testsem); // t0 finishes critical section
+	semfree(testsem);	
+	break;
+
+    case 'f':
+	testsem = semcreate(0);
+	printf("Loop should be interrupted by Interrupting Clyde\r\n");
+	
+	ready(create((void*)loopylarry, INITSTK, PRIORITY_HIGH, "t0", 1, testsem),
+                RESCHED_YES, 0);
+	ready(create((void*)interruptingClyde, INITSTK, PRIORITY_HIGH, "t1", 1, testsem),
+                RESCHED_YES, 1);	
 	break;
 
     default:
