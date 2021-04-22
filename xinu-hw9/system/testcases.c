@@ -119,9 +119,9 @@ void testcases(void)
 		RESCHED_YES, 0);	// testSemWait on core 0.
 	ready(create((void*)testSemWait, INITSTK, PRIORITY_HIGH, "t1", 1, testsem),
                 RESCHED_YES, 1);        // testSemWait on core 1.
-	printf("This should print before the 2nd 'process after wait' statement...\r\n");
+	printf("This should print BEFORE the 2nd 'process after wait' statement...\r\n");
 	signal(testsem); // t0 finishes critical section
-	semfree(testsem);	
+	printf("This should print AFTER the 2nd 'process after wait' statement...\r\n");
 	break;
 
     case 'f':
